@@ -1,0 +1,687 @@
+schema = 1
+id = "muon"
+name = "Muon (WGSL)"
+version = "0.5.1"
+api = "0.1"
+description = "Muon (WGSL): an independent Photon-inspired Horizon shader with layered cumulus, altocumulus and cirrus, a real sun/moon shadow map, cloud shadows, a footprint-filtered deep-water wave spectrum, the engine water mirror, depth-aware distance fog that leaves the LOD readable, GTAO, SSR, screen-space volumetric light, bloom, a filmic colour grade, a display-referred LUT and HDR output. Credits in README.md."
+shared = ["common.wgsl"]
+
+# The pack draws the whole Overworld sky itself. Turning the engine's own sun,
+# stars and clouds off is what removes vanilla's flat cloud layer from the
+# picture; the moon is still the engine's, so the pack only adds its halo.
+[sky]
+file = "sky.wgsl"
+clouds = false
+sun = false
+stars = false
+
+# `fog = false`: the pack applies the reference's atmosphere/underwater extinction in
+# the post pass, so the engine must not pre-fog the terrain toward vanilla blue.
+[material]
+file = "material.wgsl"
+fog = false
+
+# Rain and snow streaks, lit by the pack and hidden when the camera is in water.
+[weather]
+file = "weather.wgsl"
+
+# A real shadow map: the sun by day, the moon by night. the reference's contrast comes
+# mostly from this, not from the colour grade.
+[shadow]
+resolution = 2048
+distance = 128.0
+option = "shadows_enabled"
+solid_materials = [10, 11]
+
+# The engine's water mirror, drawn only while the player keeps reflections on.
+[reflection]
+option = "reflections"
+
+# Display-referred 3D LUT, baked as a 2D atlas: 33 slices of 33x33 laid out
+# horizontally (width 1089, height 33). Replace lut.png with your own atlas,
+# or convert a .cube with tools/cube_to_lut_png.py.
+[[textures]]
+id = "lut"
+file = "lut.png"
+filter = "linear"
+wrap = "clamp"
+
+# Tileable value noise used as the phase input of the wave octaves.
+[[textures]]
+id = "water_noise"
+file = "water_noise.png"
+filter = "linear"
+wrap = "repeat"
+
+# Sprite ids the material stage uses to recognise foliage. A stage sees the
+# sprite, not the block, so these match every leaves/plant sprite.
+[[materials]]
+id = 10
+sprites = ["block/*_leaves", "block/mangrove_roots", "block/azalea"]
+
+[[materials]]
+id = 11
+sprites = ["block/*_sapling", "block/short_grass", "block/tall_grass", "block/fern", "block/large_fern", "block/dandelion", "block/poppy", "block/*_tulip", "block/dead_bush", "block/wheat", "block/carrots", "block/potatoes", "block/beetroots", "block/sugar_cane", "block/*_bush"]
+
+[[materials]]
+id = 12
+sprites = ["block/water_still", "block/water_flow", "block/water_overlay"]
+
+# --- post chain ---
+[[post]]
+file = "post/gtao.wgsl"
+name = "GTAO"
+
+[[post]]
+file = "post/ao_blur.wgsl"
+name = "AO denoise"
+
+[[post]]
+file = "post/ssr.wgsl"
+name = "SSR"
+
+[[post]]
+file = "post/volumetrics.wgsl"
+name = "Volumetric light, haze and water fog"
+
+[[post]]
+file = "post/clouds.wgsl"
+name = "Volumetric clouds"
+
+[[post]]
+file = "post/grade.wgsl"
+name = "Bloom, grade, tonemap"
+
+[[post]]
+file = "post/fxaa.wgsl"
+name = "FXAA"
+
+[[post]]
+file = "post/final.wgsl"
+name = "CAS, dither, output"
+
+# ---- Color grading defaults ----
+[[options]]
+id = "exposure_ev"
+name = "Exposure (EV)"
+type = "float"
+default = 0.0
+min = -4.0
+max = 4.0
+step = 0.1
+
+[[options]]
+id = "tonemap_op"
+name = "Tonemap"
+type = "choice"
+values = ["Lottes (default)", "Hejl-Burgess", "Uncharted 2", "Tech (Lux)", "Reinhard Jodie"]
+default = "Lottes (default)"
+
+[[options]]
+id = "grade_brightness"
+name = "Brightness"
+type = "float"
+default = 1.02
+min = 0.0
+max = 2.0
+step = 0.01
+
+[[options]]
+id = "grade_contrast"
+name = "Contrast"
+type = "float"
+default = 1.12
+min = 0.0
+max = 2.0
+step = 0.01
+
+[[options]]
+id = "grade_saturation"
+name = "Saturation"
+type = "float"
+default = 1.22
+min = 0.0
+max = 2.0
+step = 0.01
+
+[[options]]
+id = "grade_orange_boost"
+name = "Orange saturation boost"
+type = "float"
+default = 0.10
+min = -0.5
+max = 0.5
+step = 0.01
+
+[[options]]
+id = "grade_teal_boost"
+name = "Teal saturation boost"
+type = "float"
+default = 0.00
+min = -0.5
+max = 0.5
+step = 0.01
+
+[[options]]
+id = "grade_green_boost"
+name = "Green saturation boost"
+type = "float"
+default = 0.10
+min = -0.5
+max = 0.5
+step = 0.01
+
+[[options]]
+id = "grade_green_hue"
+name = "Green hue shift (degrees)"
+type = "float"
+default = -4.0
+min = -8.0
+max = 8.0
+step = 0.5
+
+[[options]]
+id = "vignette_intensity"
+name = "Vignette"
+type = "float"
+default = 1.0
+min = 0.0
+max = 2.0
+step = 0.01
+
+[[options]]
+id = "bloom_intensity"
+name = "Bloom intensity"
+type = "float"
+default = 1.0
+min = 0.0
+max = 2.0
+step = 0.01
+
+[[options]]
+id = "bloom_spread"
+name = "Bloom spread"
+type = "float"
+default = 1.0
+min = 0.25
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "bloom_threshold"
+name = "Bloom threshold"
+type = "float"
+default = 1.0
+min = 0.0
+max = 8.0
+step = 0.1
+
+[[options]]
+id = "lens_flare"
+name = "Lens flare"
+type = "bool"
+default = true
+
+[[options]]
+id = "lens_flare_intensity"
+name = "Lens flare intensity"
+type = "float"
+default = 0.4
+min = 0.0
+max = 2.0
+step = 0.05
+
+# ---- Lighting ----
+[[options]]
+id = "sun_intensity"
+name = "Sunlight intensity"
+type = "float"
+default = 7.0
+min = 0.5
+max = 20.0
+step = 0.5
+
+[[options]]
+id = "shadows_enabled"
+name = "Sun/moon shadows"
+type = "bool"
+default = true
+
+[[options]]
+id = "shadow_softness"
+name = "Shadow softness"
+type = "float"
+default = 1.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "shadow_strength"
+name = "Shadow strength"
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "ambient_intensity"
+name = "Sky ambient light"
+type = "float"
+default = 1.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "diffuse_wrap"
+name = "Diffuse wrap"
+type = "float"
+default = 0.25
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "sss_strength"
+name = "Foliage translucency"
+type = "float"
+default = 0.6
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "emission_strength"
+name = "Emission"
+type = "float"
+default = 2.5
+min = 0.0
+max = 8.0
+step = 0.1
+
+# ---- Water ----
+[[options]]
+id = "water_waves"
+name = "Water wave strength"
+type = "float"
+default = 1.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "water_speed"
+name = "Water wave speed"
+type = "float"
+default = 1.2
+min = 0.0
+max = 3.0
+step = 0.1
+
+[[options]]
+id = "water_fog"
+name = "Water absorption"
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "water_fresnel"
+name = "Water fresnel"
+type = "float"
+default = 0.85
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "water_refraction"
+name = "Water refraction"
+type = "float"
+default = 1.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "water_reflection_blur"
+name = "Water reflection softness"
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "reflections"
+name = "Water reflections"
+type = "bool"
+default = true
+
+# ---- Ambient occlusion ----
+[[options]]
+id = "ao_strength"
+name = "GTAO strength"
+type = "float"
+default = 0.5
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "ao_radius"
+name = "GTAO radius (blocks)"
+type = "float"
+default = 2.0
+min = 0.5
+max = 6.0
+step = 0.25
+
+# ---- Reflections ----
+[[options]]
+id = "ssr_mode"
+name = "Screen-space reflections"
+type = "choice"
+values = ["Off", "Water", "Water and wet ground"]
+default = "Water"
+
+[[options]]
+id = "ssr_intensity"
+name = "SSR intensity"
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.5
+step = 0.05
+
+# ---- Volumetrics ----
+[[options]]
+id = "vl_intensity"
+name = "Volumetric light intensity"
+type = "float"
+default = 0.6
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "fog_density"
+name = "Distance fog"
+type = "float"
+default = 0.50
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "underwater_density"
+name = "Underwater murkiness"
+type = "float"
+default = 0.6
+min = 0.0
+max = 1.5
+step = 0.05
+
+[[options]]
+id = "sky_fog_blend"
+name = "Horizon haze"
+type = "float"
+default = 0.03
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "sky_intensity"
+name = "Sky intensity"
+type = "float"
+default = 1.0
+min = 0.2
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "sky_saturation"
+name = "Sky saturation"
+type = "float"
+default = 1.2
+min = 0.0
+max = 2.0
+step = 0.05
+
+# ---- Clouds ----
+[[options]]
+id = "clouds_enabled"
+name = "Volumetric clouds"
+type = "bool"
+default = true
+
+[[options]]
+id = "cloud_coverage"
+name = "Cloud coverage"
+type = "float"
+default = 0.42
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "cloud_density"
+name = "Cloud density"
+type = "float"
+default = 1.0
+min = 0.3
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "cloud_cumulus"
+name = "Cumulus amount"
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "cloud_altocumulus"
+name = "Altocumulus amount"
+type = "float"
+default = 0.15
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "cloud_cirrus"
+name = "Cirrus amount"
+type = "float"
+default = 0.18
+min = 0.0
+max = 1.0
+step = 0.05
+
+# ---- Output / HDR ----
+[[options]]
+id = "hdr_enabled"
+name = "HDR output"
+type = "bool"
+default = false
+
+[[options]]
+id = "hdr_peak_nits"
+name = "HDR peak brightness (nits)"
+type = "float"
+default = 1000.0
+min = 400.0
+max = 4000.0
+step = 50.0
+
+[[options]]
+id = "hdr_paper_white"
+name = "HDR paper white (nits)"
+type = "float"
+default = 203.0
+min = 80.0
+max = 400.0
+step = 1.0
+
+[[options]]
+id = "output_linear"
+name = "Output linear (skip sRGB encode)"
+type = "bool"
+default = false
+
+[[options]]
+id = "fxaa_enabled"
+name = "FXAA"
+type = "bool"
+default = true
+
+[[options]]
+id = "auto_exposure"
+name = "Auto exposure"
+type = "choice"
+values = ["Off", "Screen average"]
+default = "Off"
+
+[[options]]
+id = "ae_bias"
+name = "Auto exposure bias (EV)"
+type = "float"
+default = 0.0
+min = -2.0
+max = 2.0
+step = 0.1
+
+[[options]]
+id = "ae_min"
+name = "Auto exposure min (EV)"
+type = "float"
+default = -1.0
+min = -2.0
+max = 2.0
+step = 0.1
+
+[[options]]
+id = "ae_max"
+name = "Auto exposure max (EV)"
+type = "float"
+default = 0.0
+min = -2.0
+max = 2.0
+step = 0.1
+
+[[options]]
+id = "cas_enabled"
+name = "Contrast adaptive sharpening"
+type = "bool"
+default = true
+
+[[options]]
+id = "cas_intensity"
+name = "CAS intensity"
+type = "float"
+default = 0.5
+min = 0.0
+max = 1.0
+step = 0.01
+
+[[options]]
+id = "dither_enabled"
+name = "Dithering"
+type = "bool"
+default = true
+
+# ---- LUT ----
+[[options]]
+id = "lut_enabled"
+name = "Use LUT"
+type = "bool"
+default = false
+
+[[options]]
+id = "lut_strength"
+name = "LUT strength"
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+# --- the options page ------------------------------------------------------
+# Photon-style category pages. The first page is the menu; every page has to
+# be reachable from it, and every option has to appear on exactly one page.
+
+[[pages]]
+id = "main"
+name = "Muon (WGSL)"
+columns = 1
+items = ["page:general", "page:world", "page:lighting", "page:sky", "page:fog", "page:materials", "page:water", "page:post", "page:misc", "page:hdr"]
+
+[[pages]]
+id = "general"
+name = "General"
+description = "Exposure, tone mapping and the filmic grade."
+items = ["exposure_ev", "tonemap_op", "grade_brightness", "grade_contrast", "grade_saturation", "grade_orange_boost", "grade_teal_boost", "grade_green_boost", "grade_green_hue", "vignette_intensity"]
+
+[[pages]]
+id = "world"
+name = "World"
+description = "Sun, shadows and ambient light."
+items = ["sun_intensity", "shadows_enabled", "shadow_softness", "shadow_strength", "ambient_intensity"]
+
+[[pages]]
+id = "lighting"
+name = "Lighting"
+description = "Screen-space occlusion and surface response."
+items = ["ao_strength", "ao_radius"]
+
+[[pages]]
+id = "sky"
+name = "Sky"
+description = "Atmosphere, cloud layers and the horizon haze."
+items = ["sky_intensity", "sky_saturation", "sky_fog_blend", "clouds_enabled", "cloud_coverage", "cloud_density", "cloud_cumulus", "cloud_altocumulus", "cloud_cirrus"]
+
+[[pages]]
+id = "fog"
+name = "Fog"
+description = "Aerial haze, sun shafts and underwater absorption."
+items = ["fog_density", "vl_intensity", "underwater_density"]
+
+[[pages]]
+id = "materials"
+name = "Materials"
+description = "Diffuse wrap, foliage translucency and emission."
+items = ["diffuse_wrap", "sss_strength", "emission_strength"]
+
+[[pages]]
+id = "water"
+name = "Water"
+description = "Waves, the engine mirror, refraction and SSR."
+items = ["water_waves", "water_speed", "water_fog", "water_fresnel", "water_refraction", "water_reflection_blur", "reflections", "ssr_mode", "ssr_intensity"]
+
+[[pages]]
+id = "post"
+name = "Post-Processing"
+description = "Bloom, flare, antialiasing and the LUT."
+items = ["bloom_intensity", "bloom_spread", "bloom_threshold", "lens_flare", "lens_flare_intensity", "fxaa_enabled", "cas_enabled", "cas_intensity", "dither_enabled", "lut_enabled", "lut_strength"]
+
+[[pages]]
+id = "misc"
+name = "Misc"
+description = "Exposure adaptation and output."
+items = ["auto_exposure", "ae_bias", "ae_min", "ae_max", "output_linear"]
+
+[[pages]]
+id = "hdr"
+name = "HDR"
+description = "HDR output and display levels."
+items = ["hdr_enabled", "hdr_peak_nits", "hdr_paper_white"]
+
+[budget]
+gpu_ms = 14.0
