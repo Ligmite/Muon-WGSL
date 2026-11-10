@@ -1,0 +1,25 @@
+Muon Licence Agreement
+
+Copyright (c) 2026 Keyon Fatemi ("Ligmite")
+
+All rights reserved unless otherwise explicitly stated.
+
+Any person obtaining a copy of this software package ("Muon") may:
+- Use Muon, including for commercially published screenshots and videos, as long as due credit is provided
+- Modify Muon for personal use.
+- Examine and learn from Muon's source code.
+- Redistribute modified portions of Muon with the following exceptions:
+    - You may not redistribute Muon or derivative works on platforms that provide direct or indirect monetary compensation to creators (e.g. Modrinth, CurseForge) without my explicit written permission.
+    - You may not demand money in exchange for copies of Muon or derivative works without my explicit written permission.
+- Redistribute Muon as part of a (commercial) Modpack.
+
+The above copyright notice and this permission notice shall be included in all
+copies or portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
